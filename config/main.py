@@ -368,9 +368,8 @@ def get_interface_ipaddresses(config_db, interface_name):
                 ipaddresses.add(ipaddress.ip_interface(interface_ip))
 
     return ipaddresses
-
 def is_interface_bind_to_vrf(config_db, interface_name):
-    """Get interface if bind to vrf or not
+    """Get interface if bind to vrf and vrf-lite or not
     """
     table_name = get_interface_table_name(interface_name)
     if table_name == "":
@@ -379,6 +378,13 @@ def is_interface_bind_to_vrf(config_db, interface_name):
     if entry and entry.get("vrf_name"):
         return True
     return False
+
+def is_interface_bind_to_vrf_lite(config_db, interface_name):
+    """Get interface if bind to vrf-lite or not
+    """
+    if is_interface_bind_to_vrf(config_db, interface_name):
+        entry = config_db.get_entry(get_interface_table_name(interface_name), interface_name)
+        if entry and entry.get("vrf_name")
 
 def is_portchannel_name_valid(portchannel_name):
     """Port channel name validation
