@@ -4830,17 +4830,20 @@ def mpls(ctx):
 def add(ctx, interface_name):
     """Add MPLS operation on the interface"""
     config_db = ctx.obj["config_db"]
-    if clicommon.get_interface_naming_mode() == "alias":
-        interface_name = interface_alias_to_name(config_db, interface_name)
-        if interface_name is None:
-            ctx.fail("'interface_name' is None!")
+    if not is_interface_bind_to_vrf_lite(config_db, interface_name):
+        if clicommon.get_interface_naming_mode() == "alias":
+            interface_name = interface_alias_to_name(config_db, interface_name)
+            if interface_name is None:
+                ctx.fail("'interface_name' is None!")
 
-    table_name = get_interface_table_name(interface_name)
-    if not clicommon.is_interface_in_config_db(config_db, interface_name):
-        ctx.fail('interface {} doesn`t exist'.format(interface_name))
-    if table_name == "":
-        ctx.fail("'interface_name' is not valid. Valid names [Ethernet/PortChannel/Vlan]")
-    config_db.set_entry(table_name, interface_name, {"mpls": "enable"})
+        table_name = get_interface_table_name(interface_name)
+        if not clicommon.is_interface_in_config_db(config_db, interface_name):
+            ctx.fail('interface {} doesn`t exist'.format(interface_name))
+        if table_name == "":
+            ctx.fail("'interface_name' is not valid. Valid names [Ethernet/PortChannel/Vlan]")
+        config_db.set_entry(table_name, interface_name, {"mpls": "enable"})
+    else:
+        ctx.fail("MPLS can not be added because 'Vrf-lite' is bound to this [Ethernet/PortChannel/Vlan]")
 
 #
 # 'remove' subcommand
@@ -4941,6 +4944,7 @@ def unbind(ctx, interface_name):
     for ipaddress in interface_ipaddresses:
         remove_router_interface_ip_address(config_db, interface_name, ipaddress)
     config_db.set_entry(table_name, interface_name, None)
+
 
 #
 # 'ipv6' subgroup ('config interface ipv6 ...')
